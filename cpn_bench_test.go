@@ -10,6 +10,8 @@ import (
 	"github.com/alxmsl/prmtvs/plexus"
 )
 
+// BenchmarkPTP tests performance of a Net which is described as the graph:
+//
 //	digraph ptp {
 //		p0[label="p0"]
 //		p1[label="p1"]
@@ -46,6 +48,8 @@ func BenchmarkPTP(b *testing.B) {
 	cancel()
 }
 
+// BenchmarkPTPTP tests performance of a Net which is described as the graph:
+//
 //	digraph ptptp {
 //		p0[label="p0"]
 //		p1[label="p1"]
@@ -88,6 +92,8 @@ func BenchmarkPTPTP(b *testing.B) {
 	cancel()
 }
 
+// BenchmarkPTPTPTP tests performance of a Net which is described as the graph:
+//
 //	digraph ptptptp {
 //		p0[label="p0"]
 //		p1[label="p1"]
@@ -136,6 +142,8 @@ func BenchmarkPTPTPTP(b *testing.B) {
 	cancel()
 }
 
+// BenchmarkPPTTPP tests performance of a Net which is described as the graph:
+//
 //	digraph ppttpp {
 //		p0[label="p0"]
 //		p1[label="p1"]

@@ -13,13 +13,18 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type ProcessFunc func(context.Context, <-chan Token, chan<- Token) error
+// ProcessFunc defines a placement processor. Token comes from input channel.
+// Once Token is processed it should be sent into the output channel.
+type ProcessFunc func(ctx context.Context, input <-chan Token, output chan<- Token) error
 
 const (
+	// StateInactive defines that Net has not been run yet. The Net topology can be changed in the StateInactive.
 	StateInactive = iota
+	// StateActive defines that Net has been run already. The Net topology can not be changed.
 	StateActive
 )
 
+// Net structure defines a Petri-Net as two sets: set of placements and set of transitions.
 type Net struct {
 	sync.RWMutex
 
@@ -32,6 +37,7 @@ type Net struct {
 	transitions map[string]*transition
 }
 
+// NewNet creates a Net with a given identifier.
 func NewNet(id string) *Net {
 	return &Net{
 		id: id,
@@ -41,65 +47,71 @@ func NewNet(id string) *Net {
 	}
 }
 
-func (n *Net) AddPlace(placeID string, processFn ProcessFunc) error {
+// AddPlace adds unique placement to the Net with a given processor.
+// Net should not be in StateActive to add placement.
+func (n *Net) AddPlace(id string, processFn ProcessFunc) error {
 	n.Lock()
 	defer n.Unlock()
 	if n.state == StateActive {
-		return fmt.Errorf("can't add placement %s: %w", placeID, ErrorNetIsActive)
+		return fmt.Errorf("can't add placement %s: %w", id, ErrorNetIsActive)
 	}
 
-	if _, ok := n.placements[placeID]; ok {
-		return fmt.Errorf("can't add placement %s: %w", placeID, ErrorEntityAlreadyExists)
+	if _, ok := n.placements[id]; ok {
+		return fmt.Errorf("can't add placement %s: %w", id, ErrorEntityAlreadyExists)
 	}
-	n.placements[placeID] = newPlacement(placeID, processFn)
+	n.placements[id] = newPlacement(id, processFn)
 	return nil
 }
 
-func (n *Net) AddTransition(transitionID string, fromPlaceIDs []string, toPlaceIDs []string) error {
+// AddTransition creates a unique transition between given placements.
+// Net should not be in StateActive to add transition.
+func (n *Net) AddTransition(id string, fromIDs []string, toIDs []string) error {
 	n.Lock()
 	defer n.Unlock()
 	if n.state == StateActive {
-		return fmt.Errorf("can't add transition %s: %w", transitionID, ErrorNetIsActive)
+		return fmt.Errorf("can't add transition %s: %w", id, ErrorNetIsActive)
 	}
 
-	if _, ok := n.transitions[transitionID]; ok {
-		return fmt.Errorf("can't add transition %s: %w", transitionID, ErrorEntityAlreadyExists)
+	if _, ok := n.transitions[id]; ok {
+		return fmt.Errorf("can't add transition %s: %w", id, ErrorEntityAlreadyExists)
 	}
-	for _, placeID := range fromPlaceIDs {
+	for _, placeID := range fromIDs {
 		if _, ok := n.placements[placeID]; !ok {
 			return fmt.Errorf("can't add transition from placement %s: %w", placeID, ErrorEntityNotFound)
 		}
 	}
-	for _, placeID := range toPlaceIDs {
+	for _, placeID := range toIDs {
 		if _, ok := n.placements[placeID]; !ok {
 			return fmt.Errorf("can't add transition to placement %s: %w", placeID, ErrorEntityNotFound)
 		}
 	}
 
-	var t = newTransition(transitionID, fromPlaceIDs, toPlaceIDs)
-	n.transitions[transitionID] = t
+	var t = newTransition(id, fromIDs, toIDs)
+	n.transitions[id] = t
 
-	for _, placeID := range fromPlaceIDs {
+	for _, placeID := range fromIDs {
 		n.placements[placeID].addOuts(t)
 	}
-	for _, placeID := range toPlaceIDs {
+	for _, placeID := range toIDs {
 		n.placements[placeID].addIns(t)
 	}
 	return nil
 }
 
-func (n *Net) PutToken(name string, token Token) error {
-	if _, ok := n.placements[name]; !ok {
-		return fmt.Errorf("can't put token in placement %s: %w", name, ErrorEntityNotFound)
+// PutToken sends a given Token into a given placement.
+func (n *Net) PutToken(placeID string, token Token) error {
+	if _, ok := n.placements[placeID]; !ok {
+		return fmt.Errorf("can't put token in placement %s: %w", placeID, ErrorEntityNotFound)
 	}
-	return n.placements[name].putToken(token)
+	return n.placements[placeID].putToken(token)
 }
 
+// Run runs the Net to start Token processing.
 func (n *Net) Run(ctx context.Context) error {
 	n.Lock()
 	if n.state == StateActive {
 		defer n.Unlock()
-		return fmt.Errorf("can run %s: %w", n.id, ErrorNetIsActive)
+		return fmt.Errorf("can't run %s: %w", n.id, ErrorNetIsActive)
 	}
 
 	n.ctx, n.cancel = context.WithCancel(ctx)
@@ -122,6 +134,10 @@ func (n *Net) Run(ctx context.Context) error {
 	return err
 }
 
+// Stats returns sorted-key map with placements performance:
+//   - Number of accepted Token by placement.
+//   - Number of processing Token by placement.
+//   - Number of sent Token by placement.
 func (n *Net) Stats() *skm.SKM {
 	var stats = skm.NewSortedKeyMap()
 	for _, p := range n.placements {
@@ -130,6 +146,7 @@ func (n *Net) Stats() *skm.SKM {
 	return stats
 }
 
+// Stop stops running of the Net.
 func (n *Net) Stop() error {
 	n.Lock()
 	defer n.Unlock()
@@ -137,30 +154,35 @@ func (n *Net) Stop() error {
 		return fmt.Errorf("can't stop %s: %w", n.id, ErrorNetIsInactive)
 	}
 	n.cancel()
+	n.state = StateInactive
 	return nil
 }
 
+// Stats struct defines a placement performance data.
 type Stats struct {
-	Accepted   uint64
-	Processing uint64
-	Sent       uint64
+	Accepted   uint64 // Number of accepted Token.
+	Processing uint64 // Number of processing Token.
+	Sent       uint64 // Number of sent Token.
 }
 
 func (s Stats) String() string {
 	return fmt.Sprintf(`{"Accepted": %d, "Processing": %d, "Sent": %d}`, s.Accepted, s.Processing, s.Sent)
 }
 
+// Token struct defines a Petri-Net token
 type Token struct {
 	payload any
 	word    checkpoints
 }
 
+// NewToken creates a Token with a given payload.
 func NewToken(payload any) *Token {
 	return &Token{
 		payload: payload,
 	}
 }
 
+// Payload returns current payload for the Token
 func (t Token) Payload() any {
 	return t.payload
 }
@@ -169,6 +191,8 @@ func (t Token) String() string {
 	return fmt.Sprintf("%v: %s", t.payload, t.word)
 }
 
+// Merge implements a plexus.Mergeable interface for a Token.
+// Payload has to implement plexus.Mergeable interface as well. Otherwise, function panics.
 func (a Token) Merge(b plexus.Mergeable) plexus.Mergeable {
 	if _, ok := a.payload.(plexus.Mergeable); !ok {
 		panic(fmt.Errorf("payload from a is not mergeable: %w", ErrorWrongTokenType))

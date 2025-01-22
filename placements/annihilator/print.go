@@ -7,8 +7,10 @@ import (
 	"github.com/alxmsl/cpn"
 )
 
+// PrintToken creates an annihilator which reads cpn.Token from the input channel and calls fmt.Println for it in
+// concatenation for a given arguments.
 func PrintToken(a ...any) cpn.ProcessFunc {
-	return func(ctx context.Context, input <-chan cpn.Token, output chan<- cpn.Token) error {
+	return func(ctx context.Context, input <-chan cpn.Token, _ chan<- cpn.Token) error {
 		for {
 			select {
 			case token := <-input:

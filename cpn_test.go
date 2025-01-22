@@ -31,14 +31,14 @@ var testsData = []plexus.Counter{
 }
 
 var (
-	generatorTestData = func(ctx context.Context, input <-chan cpn.Token, output chan<- cpn.Token) error {
+	testDataGenerator = func(ctx context.Context, input <-chan cpn.Token, output chan<- cpn.Token) error {
 		for _, testData := range testsData {
 			t := cpn.NewToken(testData)
 			output <- *t
 		}
 		return nil
 	}
-	annihilatorTestData = func(ctx context.Context, input <-chan cpn.Token, output chan<- cpn.Token) error {
+	testDataAnnihilator = func(ctx context.Context, input <-chan cpn.Token, output chan<- cpn.Token) error {
 		for _, testData := range testsData {
 			token := <-input
 			if token.Payload() != testData {
@@ -82,7 +82,7 @@ func (s *CpnSuite) TestPTP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, annihilatorTestData)
+	var net = builder(c, testDataGenerator, testDataAnnihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
@@ -127,7 +127,7 @@ func (s *CpnSuite) TestPTTP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, annihilator.Annihilator)
+	var net = builder(c, testDataGenerator, annihilator.Annihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
@@ -171,7 +171,7 @@ func (s *CpnSuite) TestPTPP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, annihilatorTestData, annihilatorTestData)
+	var net = builder(c, testDataGenerator, testDataAnnihilator, testDataAnnihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
@@ -219,7 +219,7 @@ func (s *CpnSuite) TestPPTP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, generatorTestData, annihilator.Annihilator)
+	var net = builder(c, testDataGenerator, testDataGenerator, annihilator.Annihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
@@ -273,7 +273,7 @@ func (s *CpnSuite) TestPPTTP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, generatorTestData, annihilator.Annihilator)
+	var net = builder(c, testDataGenerator, testDataGenerator, annihilator.Annihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
@@ -334,7 +334,7 @@ func (s *CpnSuite) TestPPTTPP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, generatorTestData, annihilator.Annihilator, annihilator.Annihilator)
+	var net = builder(c, testDataGenerator, testDataGenerator, annihilator.Annihilator, annihilator.Annihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
@@ -391,7 +391,7 @@ func (s *CpnSuite) TestPTPTP(c *C) {
 		return net
 	}
 
-	var net = builder(c, generatorTestData, mediator.Mediator, annihilatorTestData)
+	var net = builder(c, testDataGenerator, mediator.Mediator, testDataAnnihilator)
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	var err = net.Run(ctx)
 	c.Assert(err, IsNil)
