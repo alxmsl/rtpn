@@ -15,6 +15,8 @@ func main() {
 	pptpp()
 }
 
+// pptpp runs a Petri-Net for the graph:
+//
 //	digraph pptpp {
 //		p0[label="p0"]
 //		p1[label="p1"]
@@ -40,14 +42,14 @@ func pptpp() {
 	go func() {
 		var (
 			t   = cpn.NewToken(plexus.Counter(1))
-			err = net.PutToken("p0", *t)
+			err = net.Markup("p0", *t)
 		)
 		if err != nil {
 			panic(err)
 		}
 
 		t = cpn.NewToken(plexus.Counter(2))
-		err = net.PutToken("p1", *t)
+		err = net.Markup("p1", *t)
 		if err != nil {
 			panic(err)
 		}

@@ -16,6 +16,8 @@ func main() {
 	ppttpp2()
 }
 
+// ppttpp2 runs a Petri-Net for the graph:
+//
 //	digraph ppttpp2 {
 //		p0[label="p0"]
 //		p1[label="p1"]
@@ -48,8 +50,8 @@ func ppttpp2() {
 	var ctx, _ = context.WithTimeout(context.Background(), time.Second)
 	go func() {
 		var t = cpn.NewToken(plexus.Counter(1))
-		_ = net.PutToken("p1", *t)
-		_ = net.PutToken("p1", *t)
+		_ = net.Markup("p1", *t)
+		_ = net.Markup("p1", *t)
 	}()
 	var err = net.Run(ctx)
 	if err != nil {

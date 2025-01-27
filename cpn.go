@@ -98,8 +98,8 @@ func (n *Net) AddTransition(id string, fromIDs []string, toIDs []string) error {
 	return nil
 }
 
-// PutToken sends a given Token into a given placement.
-func (n *Net) PutToken(placeID string, token Token) error {
+// Markup sends a given Token into a given placement.
+func (n *Net) Markup(placeID string, token Token) error {
 	if _, ok := n.placements[placeID]; !ok {
 		return fmt.Errorf("can't put token in placement %s: %w", placeID, ErrorEntityNotFound)
 	}

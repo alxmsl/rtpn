@@ -39,7 +39,7 @@ func BenchmarkPTP(b *testing.B) {
 	var token = cpn.NewToken("some payload")
 	b.ResetTimer()
 	for i := 0; i < b.N; i += 1 {
-		var err = net.PutToken("p0", *token)
+		var err = net.Markup("p0", *token)
 		if err != nil {
 			b.Fatal(err)
 			return
@@ -83,7 +83,7 @@ func BenchmarkPTPTP(b *testing.B) {
 	var token = cpn.NewToken("some payload")
 	b.ResetTimer()
 	for i := 0; i < b.N; i += 1 {
-		var err = net.PutToken("p0", *token)
+		var err = net.Markup("p0", *token)
 		if err != nil {
 			b.Fatal(err)
 			return
@@ -133,7 +133,7 @@ func BenchmarkPTPTPTP(b *testing.B) {
 	var token = cpn.NewToken("some payload")
 	b.ResetTimer()
 	for i := 0; i < b.N; i += 1 {
-		var err = net.PutToken("p0", *token)
+		var err = net.Markup("p0", *token)
 		if err != nil {
 			b.Fatal(err)
 			return
@@ -184,12 +184,12 @@ func BenchmarkPPTTPP(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i += 1 {
 		var err error
-		err = net.PutToken("p0", *token)
+		err = net.Markup("p0", *token)
 		if err != nil {
 			b.Fatal(err)
 			return
 		}
-		err = net.PutToken("p1", *token)
+		err = net.Markup("p1", *token)
 		if err != nil {
 			b.Fatal(err)
 			return

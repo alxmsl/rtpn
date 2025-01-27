@@ -15,6 +15,8 @@ func main() {
 	pttp()
 }
 
+// pttp runs a Petri-Net for the graph:
+//
 //	digraph pttp {
 //		p0[label="p0"]
 //		p1[label="p1"]
