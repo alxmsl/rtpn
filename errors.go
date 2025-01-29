@@ -1,6 +1,8 @@
 package cpn
 
-import "errors"
+import (
+	"errors"
+)
 
 // ErrorEntityAlreadyExists defines error for a case when one entity conflicts with another.
 var ErrorEntityAlreadyExists = errors.New("entity already exists")
@@ -13,6 +15,9 @@ var ErrorNetIsActive = errors.New("net is active")
 
 // ErrorNetIsInactive defines error for a case when Net is inactive unexpectedly.
 var ErrorNetIsInactive = errors.New("net is inactive")
+
+// ErrorWrongPayloadType defines error for a case when a Token payload has a wrong type.
+var ErrorWrongPayloadType = errors.New("wrong payload type")
 
 // ErrorWrongTokenType defines error for a case when Token has a wrong type.
 var ErrorWrongTokenType = errors.New("wrong token type")
