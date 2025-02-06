@@ -2,7 +2,6 @@ package cpn
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -73,17 +72,4 @@ func (cps checkpoints) Word() string {
 		ww = append(ww, cp.name)
 	}
 	return strings.Join(ww, ",")
-}
-
-// PayloadInt returns payload as an int value.
-func PayloadInt(token Token) (int, error) {
-	var payload, ok = token.Payload().(string)
-	if !ok {
-		return 0, ErrorWrongPayloadType
-	}
-	value, err := strconv.Atoi(payload)
-	if err != nil {
-		return 0, err
-	}
-	return value, nil
 }

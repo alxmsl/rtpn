@@ -4,6 +4,7 @@ import (
 	. "gopkg.in/check.v1"
 
 	"github.com/alxmsl/cpn"
+	"github.com/alxmsl/cpn/payload"
 )
 
 type TokenSuite struct{}
@@ -22,7 +23,7 @@ func (s *TokenSuite) TestPayloadInt(c *C) {
 		},
 	}
 	for _, testData := range testsData {
-		var value, err = cpn.PayloadInt(testData.token)
+		var value, err = payload.PayloadIntString(testData.token)
 		c.Assert(err, IsNil, Commentf("token: %v", testData.token))
 		c.Assert(value, Equals, testData.expectedValue, Commentf("token: %v", testData.token))
 	}
