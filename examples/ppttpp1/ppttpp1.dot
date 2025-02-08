@@ -1,0 +1,16 @@
+digraph f2 {
+    p0[label="p0"]
+    p1[label="p1"]
+    p2[label="p2"]
+    p3[label="p3"]
+
+    t0[shape="box"]
+    t1[shape="box"]
+
+    p0 -> t0
+    p1 -> t1
+    t0 -> p2
+    t1 -> p2
+    t0 -> p3
+    t1 -> p3
+}
